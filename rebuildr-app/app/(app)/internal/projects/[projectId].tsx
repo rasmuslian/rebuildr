@@ -17,7 +17,7 @@ import { TextInput } from "@components/forms/textInput";
 import { InternalPageLayout } from "@components/internal/internal-page-layout";
 import { InternalProjectProducts } from "@components/internal/internal-project-products";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import Map from "@components/maps/map";
+import InteractiveMap from "@components/maps/interactive-map";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { Popup } from "@components/popup/popup";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
@@ -256,10 +256,11 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
             <Body size="medium" style={{ marginBottom: 24 }}>
               {project.address}
             </Body>
-            <Map
-              lat={project.location.lat}
-              lng={project.location.lng}
-              height={isDesktop ? 700 : 500}
+            <InteractiveMap
+              initialCenter={project.location}
+              productsInput={{ projectId }}
+              searchScope="internal"
+              style={{ height: isDesktop ? 700 : 500 }}
             />
           </View>
         </View>

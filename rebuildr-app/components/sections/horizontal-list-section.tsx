@@ -7,7 +7,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { SectionHeader } from "./section-header";
 
 type Props<T> = {
-  title: string;
+  title?: string;
   onPress?: () => void;
   data: T[];
   renderItem: ({ item }: { item: T }) => React.ReactNode;
@@ -54,9 +54,11 @@ export const HoriztalListSection = <T,>({
 
   return (
     <View style={{ gap: 16 }}>
-      <SectionHeader onPress={onPress} buttonTitle={buttonTitle}>
-        {title}
-      </SectionHeader>
+      {!!title && (
+        <SectionHeader onPress={onPress} buttonTitle={buttonTitle}>
+          {title}
+        </SectionHeader>
+      )}
       <View
         onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
       >

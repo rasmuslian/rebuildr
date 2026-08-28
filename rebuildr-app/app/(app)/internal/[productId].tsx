@@ -341,12 +341,12 @@ export default function InternalAdDetailPage() {
       )}
       <Divider />
       <CO2Savings co2SavingSeller={product.co2SavingSeller} />
-      {!!product.project && (
-        <>
-          <Divider />
-          <InternalProjectSection project={product.project} />
-        </>
-      )}
+    </>
+  );
+  const projectContent = product.project && (
+    <>
+      <Divider />
+      <InternalProjectSection project={product.project} />
     </>
   );
   const managementContent = (
@@ -379,6 +379,7 @@ export default function InternalAdDetailPage() {
         )}
         {secondaryContent}
         {managementContent}
+        {projectContent}
         <RemoveProduct
           productId={product.id}
           show={showRemoveProduct}
@@ -464,6 +465,7 @@ export default function InternalAdDetailPage() {
               )}
               {secondaryContent}
               {managementContent}
+              {projectContent}
             </View>
           </View>
         </View>
@@ -784,16 +786,80 @@ const InternalAdContent = ({
         />
       </View>
 
-      <View>
-        <Headline size="large" style={{ marginBottom: 8 }}>
-          {stockStatus}
-        </Headline>
-        {product.status !== ProductStatusEnum.Sold &&
-          product.soldByQuantity && (
-            <Body size="medium" color="secondary">
-              {availableQuantity} av {product.primaryQuantity ?? 0} kvar
-            </Body>
+      <View style={{ gap: 16 }}>
+        <View>
+          <Headline size="large" style={{ marginBottom: 8 }}>
+            {stockStatus}
+          </Headline>
+          {product.status !== ProductStatusEnum.Sold &&
+            product.soldByQuantity && (
+              <Body size="medium" color="secondary">
+                {availableQuantity} av {product.primaryQuantity ?? 0} kvar
+              </Body>
+            )}
+        </View>
+
+        <Reservations
+          reservations={activeReservations}
+          canMarkSold={canMarkSold}
+          canceling={canceling}
+          markingSold={markingSold}
+          onCancel={onCancel}
+          onMarkSold={onMarkSold}
+          unit={product.primaryUnit ?? undefined}
+          reservationControls={
+            product.status !== ProductStatusEnum.Sold &&
+            availableQuantity > 0 ? (
+              <View style={{ gap: 8, zIndex: 100 }}>
+                {product.soldByQuantity && (
+                  <QuantityStepper
+                    value={quantity}
+                    onChange={setQuantity}
+                    max={availableQuantity}
+                    unit={product.primaryUnit ?? undefined}
+                  />
+                )}
+                <SelectInput
+                  value={reservationMemberId}
+                  searchable
+                  searchPlaceholder="Sök person"
+                  options={members.map((member) => ({
+                    value: member.id,
+                    label: member.name,
+                  }))}
+                  onSelect={setReservationMemberId}
+                  placeholder="Välj vem som reserverar"
+                />
+                <Button
+                  label="Reservera"
+                  onPress={onReserve}
+                  loading={reserving}
+                  disabled={availableQuantity <= 0 || !reservationMemberId}
+                />
+              </View>
+            ) : undefined
+          }
+        />
+
+        {canMarkSold &&
+          product.soldByQuantity &&
+          product.status !== ProductStatusEnum.Sold && (
+            <Button
+              label="Markera hela annonsen som såld"
+              type="tonal"
+              onPress={() => onMarkSold()}
+              loading={markingSold}
+            />
           )}
+
+        {canMarkSold && product.status !== ProductStatusEnum.Sold && (
+          <PublicAvailabilityCard
+            publiclyAvailable={product.publiclyAvailable}
+            canPublishExternally={canPublishExternally}
+            loading={makingPublic}
+            onPress={onSetPublicAvailability}
+          />
+        )}
       </View>
 
       <Divider />
@@ -867,71 +933,6 @@ const InternalAdContent = ({
       </View>
 
       <Divider />
-
-      <Reservations
-        reservations={activeReservations}
-        canMarkSold={canMarkSold}
-        canceling={canceling}
-        markingSold={markingSold}
-        onCancel={onCancel}
-        onMarkSold={onMarkSold}
-        unit={product.primaryUnit ?? undefined}
-        reservationControls={
-          product.status !== ProductStatusEnum.Sold && availableQuantity > 0 ? (
-            <View style={{ gap: 8, zIndex: 100 }}>
-              {product.soldByQuantity && (
-                <QuantityStepper
-                  value={quantity}
-                  onChange={setQuantity}
-                  max={availableQuantity}
-                  unit={product.primaryUnit ?? undefined}
-                />
-              )}
-              <SelectInput
-                value={reservationMemberId}
-                searchable
-                searchPlaceholder="Sök person"
-                options={members.map((member) => ({
-                  value: member.id,
-                  label: member.name,
-                }))}
-                onSelect={setReservationMemberId}
-                placeholder="Välj vem som reserverar"
-              />
-              <Button
-                label="Reservera"
-                onPress={onReserve}
-                loading={reserving}
-                disabled={availableQuantity <= 0 || !reservationMemberId}
-              />
-            </View>
-          ) : undefined
-        }
-      />
-
-      <Divider />
-
-      {canMarkSold && product.status !== ProductStatusEnum.Sold && (
-        <PublicAvailabilityCard
-          publiclyAvailable={product.publiclyAvailable}
-          canPublishExternally={canPublishExternally}
-          loading={makingPublic}
-          onPress={onSetPublicAvailability}
-        />
-      )}
-
-      {canMarkSold &&
-        product.soldByQuantity &&
-        product.status !== ProductStatusEnum.Sold && (
-          <Button
-            label="Markera hela annonsen som såld"
-            type="tonal"
-            onPress={() => onMarkSold()}
-            loading={markingSold}
-          />
-        )}
-
-      {canMarkSold && product.status !== ProductStatusEnum.Sold && <Divider />}
 
       <View>
         <Headline size="small">Specifikation</Headline>
@@ -1133,7 +1134,7 @@ const InternalAdManagement = ({
   <>
     <Divider />
     <View style={{ gap: 16 }}>
-      <Headline size="small">Upplagd av</Headline>
+      <Headline size="small">Kontaktperson</Headline>
       <View style={{ gap: 4 }}>
         {!!product.createdByOrganizationMember?.name && (
           <Body size="medium">{product.createdByOrganizationMember.name}</Body>
@@ -1193,7 +1194,7 @@ const PublicAvailabilityCard = ({
     }}
   >
     <View style={{ gap: 4 }}>
-      <Headline size="small">Publisera externt</Headline>
+      <Headline size="small">Publicera externt</Headline>
       <Body size="medium" color="secondary">
         Gör annonsen synlig för alla på RebuildR, utanför ert interna lager.
       </Body>
@@ -1241,74 +1242,69 @@ const Reservations = ({
   unit,
 }: ReservationsProps) => (
   <View style={{ gap: 12, position: "relative", zIndex: 1000 }}>
-    <Headline size="small">Reservationer</Headline>
     {reservationControls}
-    {reservations.length ? (
-      reservations.map((reservation) => {
-        const canCancel = canMarkSold;
+    {reservations.length
+      ? reservations.map((reservation) => {
+          const canCancel = canMarkSold;
 
-        return (
-          <View key={reservation.id} style={{ gap: 8 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <View style={{ gap: 2 }}>
-                <Body size="medium">
-                  {reservation.reservedByOrganizationMemberName ?? "Okänd"}
-                  {reservation.quantity
-                    ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
-                    : ""}
-                </Body>
-                {!!reservation.reservedByOrganizationMemberEmail && (
-                  <Pressable
-                    accessibilityRole="link"
-                    onPress={() =>
-                      Linking.openURL(
-                        `mailto:${reservation.reservedByOrganizationMemberEmail}`,
-                      )
-                    }
-                  >
-                    <Body size="small" isLink>
-                      {reservation.reservedByOrganizationMemberEmail}
-                    </Body>
-                  </Pressable>
-                )}
+          return (
+            <View key={reservation.id} style={{ gap: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <View style={{ gap: 2 }}>
+                  <Body size="medium">
+                    {reservation.reservedByOrganizationMemberName ?? "Okänd"}
+                    {reservation.quantity
+                      ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
+                      : ""}
+                  </Body>
+                  {!!reservation.reservedByOrganizationMemberEmail && (
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() =>
+                        Linking.openURL(
+                          `mailto:${reservation.reservedByOrganizationMemberEmail}`,
+                        )
+                      }
+                    >
+                      <Body size="small" isLink>
+                        {reservation.reservedByOrganizationMemberEmail}
+                      </Body>
+                    </Pressable>
+                  )}
+                </View>
+                <Label size="medium">
+                  {new Date(reservation.reservedAt).toLocaleDateString("sv-SE")}
+                </Label>
               </View>
-              <Label size="medium">
-                {new Date(reservation.reservedAt).toLocaleDateString("sv-SE")}
-              </Label>
-            </View>
-            {canCancel && (
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Button
-                  label="Avboka"
-                  type="tonal"
-                  onPress={() => onCancel(reservation.id)}
-                  loading={canceling}
-                  style={{ flex: 1 }}
-                />
-                {canMarkSold && (
+              {canCancel && (
+                <View style={{ flexDirection: "row", gap: 8 }}>
                   <Button
-                    label="Markera såld"
-                    onPress={() => onMarkSold(reservation.id)}
-                    loading={markingSold}
+                    label="Avboka"
+                    type="tonal"
+                    onPress={() => onCancel(reservation.id)}
+                    loading={canceling}
                     style={{ flex: 1 }}
                   />
-                )}
-              </View>
-            )}
-          </View>
-        );
-      })
-    ) : (
-      <Body size="medium" color="secondary">
-        Inga aktiva reservationer.
-      </Body>
-    )}
+                  {canMarkSold && (
+                    <Button
+                      label="Markera såld"
+                      onPress={() => onMarkSold(reservation.id)}
+                      loading={markingSold}
+                      style={{ flex: 1 }}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        })
+      : null}
   </View>
 );
 

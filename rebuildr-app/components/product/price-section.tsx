@@ -15,6 +15,7 @@ type Props = {
   onUpdateSoldByQuantity: (value: boolean) => void;
   priceSuggestionMin?: number;
   priceSuggestionMax?: number;
+  showPrice?: boolean;
 };
 
 export const PriceSection = ({
@@ -27,6 +28,7 @@ export const PriceSection = ({
   onUpdateSoldByQuantity,
   priceSuggestionMin,
   priceSuggestionMax,
+  showPrice = true,
 }: Props) => {
   const colors = useThemeColor();
 
@@ -52,74 +54,80 @@ export const PriceSection = ({
         paddingBottom: 16,
       }}
     >
-      <Display size="small" style={{ marginBottom: 24 }}>
-        Pris
-      </Display>
-      <Label size="medium" style={{ marginBottom: 4 }}>
-        {soldByQuantity ? "Pris per enhet" : "Pris*"}
-      </Label>
-      {priceHigherThan > 0 ? (
-        <View style={{ paddingBottom: 12 }}>
-          <Body size="small" color="secondary">
-            {`Ange ett pris över ${priceHigherThan} kr — eller 0 kr om varan bortskänkes.`}
-          </Body>
-        </View>
-      ) : null}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-        <TextInput
-          inputType="numeric"
-          value={price !== undefined ? price.toString() : ""}
-          placeholder={soldByQuantity ? "Ange styckepris" : "Ange totalpris"}
-          onChange={(priceString) => {
-            const priceInt = parseInt(priceString, 10);
-            const newPrice = Math.max(0, priceInt);
-            onUpdate(newPrice <= 0, newPrice);
-          }}
-          error={!!priceError}
-          style={
-            soldByQuantity
-              ? {
-                  backgroundColor: colors.buttons.tonal.enabled,
-                  borderColor: colors.text.link,
-                }
-              : undefined
-          }
-        />
-        <Label size="medium">{soldByQuantity ? "Kr/Enhet" : "kr"}</Label>
-      </View>
-      {!!priceError && (
-        <Body color="error" size="small" style={{ marginTop: 12 }}>
-          {priceError}
-        </Body>
-      )}
-      {showSuggestion && (
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-            marginTop: 12,
-            backgroundColor: colors.buttons.tonal.enabled,
-            borderRadius: 8,
-            padding: 12,
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Label size="medium">{`Prisförslag: ${formatNumber(priceSuggestionMin)}–${formatNumber(priceSuggestionMax)} kr`}</Label>
-            <Body size="small" color="secondary">
-              AI har bedömt dina bilder och vad liknande sålts för. Du sätter
-              priset själv.
-            </Body>
+      {showPrice && (
+        <>
+          <Display size="small" style={{ marginBottom: 24 }}>
+            Pris
+          </Display>
+          <Label size="medium" style={{ marginBottom: 4 }}>
+            {soldByQuantity ? "Pris per enhet" : "Pris*"}
+          </Label>
+          {priceHigherThan > 0 ? (
+            <View style={{ paddingBottom: 12 }}>
+              <Body size="small" color="secondary">
+                {`Ange ett pris över ${priceHigherThan} kr — eller 0 kr om varan bortskänkes.`}
+              </Body>
+            </View>
+          ) : null}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+            <TextInput
+              inputType="numeric"
+              value={price !== undefined ? price.toString() : ""}
+              placeholder={
+                soldByQuantity ? "Ange styckepris" : "Ange totalpris"
+              }
+              onChange={(priceString) => {
+                const priceInt = parseInt(priceString, 10);
+                const newPrice = Math.max(0, priceInt);
+                onUpdate(newPrice <= 0, newPrice);
+              }}
+              error={!!priceError}
+              style={
+                soldByQuantity
+                  ? {
+                      backgroundColor: colors.buttons.tonal.enabled,
+                      borderColor: colors.text.link,
+                    }
+                  : undefined
+              }
+            />
+            <Label size="medium">{soldByQuantity ? "Kr/Enhet" : "kr"}</Label>
           </View>
-          <Body
-            size="medium"
-            isLink
-            onPress={() => onUpdate(false, suggestionMid)}
-          >
-            {`Använd ${formatNumber(suggestionMid)} kr`}
-          </Body>
-        </View>
+          {!!priceError && (
+            <Body color="error" size="small" style={{ marginTop: 12 }}>
+              {priceError}
+            </Body>
+          )}
+          {showSuggestion && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 8,
+                marginTop: 12,
+                backgroundColor: colors.buttons.tonal.enabled,
+                borderRadius: 8,
+                padding: 12,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Label size="medium">{`Prisförslag: ${formatNumber(priceSuggestionMin)}–${formatNumber(priceSuggestionMax)} kr`}</Label>
+                <Body size="small" color="secondary">
+                  AI har bedömt dina bilder och vad liknande sålts för. Du
+                  sätter priset själv.
+                </Body>
+              </View>
+              <Body
+                size="medium"
+                isLink
+                onPress={() => onUpdate(false, suggestionMid)}
+              >
+                {`Använd ${formatNumber(suggestionMid)} kr`}
+              </Body>
+            </View>
+          )}
+        </>
       )}
       <View
         style={{

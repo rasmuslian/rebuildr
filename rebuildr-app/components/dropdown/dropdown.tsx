@@ -19,6 +19,7 @@ type DropdownProps = {
     height: number;
   };
   showTopDivider?: boolean;
+  zIndex?: number;
 };
 
 export const Dropdown = ({
@@ -28,6 +29,7 @@ export const Dropdown = ({
   visible,
   onClose,
   showTopDivider = true,
+  zIndex = 1000,
 }: DropdownProps) => {
   const colors = useThemeColor();
   const { height } = useWindowDimensions();
@@ -75,7 +77,7 @@ export const Dropdown = ({
         backgroundColor: colors.background.neutral,
         top: position.y,
         left: position.x,
-        zIndex: 1000, // FIXME: Do we need this high?
+        zIndex,
         elevation: 10,
         borderBottomLeftRadius: 12,
         borderBottomRightRadius: 12,

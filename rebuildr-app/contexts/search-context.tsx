@@ -22,6 +22,7 @@ export type SearchScope = "public" | "internal";
 
 type StateType = {
   dropdownVisible: boolean;
+  dropdownSource?: "navbar" | "hero" | "other";
   dropdownHideTopDivider: boolean;
   dropdownPosition: { x: number; y: number; width: number };
   dropdownAnchorPosition: {
@@ -39,6 +40,7 @@ type StateType = {
 
 const initialState: StateType = {
   dropdownVisible: false,
+  dropdownSource: undefined,
   dropdownHideTopDivider: false,
   dropdownPosition: { x: 0, y: 0, width: 0 },
   dropdownAnchorPosition: { x: 0, y: 0, width: 0, height: 0 },
@@ -60,7 +62,7 @@ const Context = createContext<ContextType | null>(null);
 
 export const SearchProvider = ({ children }: PropsWithChildren) => {
   const [state, setState] = useReducerState<StateType>(initialState);
-  const latestSearchStringRef = useRef<string | undefined>(undefined);
+  const latestSearchRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!state.dropdownVisible) {
@@ -80,54 +82,67 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
     InternalAdsSearchQueryVariables
   >(INTERNAL_ADS_SEARCH);
 
-  const search = useDebounce((text: string, scope: SearchScope = "public") => {
-    const searchString = text.trim();
-    latestSearchStringRef.current = searchString || undefined;
+  const runSearch = useDebounce(
+    (text: string, scope: SearchScope, searchKey: string | undefined) => {
+      const searchString = text.trim();
 
-    setState({
-      searchData: undefined,
-      internalSearchData: undefined,
-      completedSearchString: undefined,
-      searchScope: scope,
-    });
+      setState({
+        searchData: undefined,
+        internalSearchData: undefined,
+        completedSearchString: undefined,
+        searchScope: scope,
+      });
 
-    if (searchString.length > 0) {
-      if (scope === "internal") {
-        doInternalSearch({
+      if (searchString.length > 0) {
+        if (scope === "internal") {
+          doInternalSearch({
+            variables: {
+              input: { searchString },
+            },
+          }).then(({ data }) => {
+            if (!data || latestSearchRef.current !== searchKey) return;
+
+            setState({
+              internalSearchData: data,
+              completedSearchString: searchString,
+              searchScope: scope,
+            });
+          });
+          return;
+        }
+
+        doSearch({
           variables: {
-            input: { searchString },
+            searchSuggestionsInput: { searchString, limit: 8 },
+            productsInput: { searchString, onlyPublished: true },
+            categoriesInput: {},
+            usersInput: { name: searchString },
           },
         }).then(({ data }) => {
-          if (!data || latestSearchStringRef.current !== searchString) return;
+          if (!data || latestSearchRef.current !== searchKey) return;
 
           setState({
-            internalSearchData: data,
+            searchData: data,
             completedSearchString: searchString,
             searchScope: scope,
           });
         });
-        return;
       }
+    },
+    300,
+  );
 
-      doSearch({
-        variables: {
-          searchSuggestionsInput: { searchString, limit: 8 },
-          productsInput: { searchString, onlyPublished: true },
-          categoriesInput: {},
-          usersInput: { name: searchString },
-        },
-      }).then(({ data }) => {
-        if (!data || latestSearchStringRef.current !== searchString) return;
+  const search = (text: string, scope: SearchScope = "public") => {
+    const searchString = text.trim();
+    const searchKey = searchString ? `${scope}:${searchString}` : undefined;
+    latestSearchRef.current = searchKey;
+    runSearch(text, scope, searchKey);
+  };
 
-        setState({
-          searchData: data,
-          completedSearchString: searchString,
-        });
-      });
-    }
-  }, 300);
-
-  const reset = () => setState(initialState);
+  const reset = () => {
+    latestSearchRef.current = undefined;
+    setState(initialState);
+  };
 
   return (
     <Context.Provider

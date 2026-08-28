@@ -2,6 +2,8 @@ import {
   ProjectCard,
   ProjectCardProject,
 } from "@components/cards/project-card";
+import { HoriztalListSection } from "@components/sections/horizontal-list-section";
+import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
 import { useScreenType } from "@hooks/useScreenType";
 import { View } from "react-native";
 
@@ -17,18 +19,36 @@ export const InternalProjectGrid = ({
   landing = false,
 }: Props) => {
   const { isDesktop } = useScreenType();
-  const visibleProjects =
-    landing && !isDesktop ? projects.slice(0, 1) : projects;
+  if (landing) {
+    return (
+      <HoriztalListSection
+        data={projects}
+        keyExtractor={(project) => project.id}
+        renderItem={({ item: project }) => (
+          <ProjectCard
+            compact
+            showHeart={false}
+            showOwner={false}
+            titleSize="small"
+            project={project}
+            onPress={() => onProjectPress(project.id)}
+          />
+        )}
+        visibleItems={3}
+        visibleItemsDesktop={DESKTOP_ROW_COLUMNS}
+      />
+    );
+  }
 
   return (
     <View
       style={
         isDesktop
-          ? { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -12 }
-          : { gap: 24 }
+          ? { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -8 }
+          : { gap: 16 }
       }
     >
-      {visibleProjects.map((project) => (
+      {projects.map((project) => (
         <View
           key={project.id}
           style={
@@ -36,16 +56,16 @@ export const InternalProjectGrid = ({
               ? {
                   flexBasis: "25%",
                   maxWidth: "25%",
-                  paddingHorizontal: 12,
-                  paddingBottom: 24,
+                  paddingHorizontal: 8,
+                  paddingBottom: 16,
                 }
               : undefined
           }
         >
           <ProjectCard
-            compact={landing}
             showHeart={false}
             showOwner={false}
+            titleSize="small"
             project={project}
             onPress={() => onProjectPress(project.id)}
           />

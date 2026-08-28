@@ -200,6 +200,7 @@ export const InternalStatisticsSection = ({
               value={selectedPreset}
               options={PRESET_OPTIONS}
               onSelect={onPresetChange}
+              valueLabelSize="large"
             />
           </View>
           <Button

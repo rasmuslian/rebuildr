@@ -1,5 +1,6 @@
 import { SearchInput } from "@components/forms/searchInput";
-import { Body } from "@components/typography/text";
+import { Body, Label } from "@components/typography/text";
+import type { LabelSize } from "@components/typography/typeface";
 import { TextTokens } from "@constants/colors";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useOutsidePress } from "@hooks/useOutsidePress";
@@ -20,6 +21,7 @@ export type Props<T> = {
   dropdown?: (collapseDropdown: () => void) => ReactElement;
   options: { value: T; label: string; disabled?: boolean }[];
   onSelect: (value: T) => void;
+  valueLabelSize?: LabelSize;
 };
 
 export const SelectInput = <T,>({ ...props }: Props<T>) => {
@@ -120,9 +122,15 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
           else setShowOptions(true);
         }}
       >
-        <Body size="medium" color={getTextColor()}>
-          {value || props.placeholder}
-        </Body>
+        {props.valueLabelSize ? (
+          <Label size={props.valueLabelSize} color={getTextColor()}>
+            {value || props.placeholder}
+          </Label>
+        ) : (
+          <Body size="medium" color={getTextColor()}>
+            {value || props.placeholder}
+          </Body>
+        )}
         <Icon icon="chevronDown" size={12} />
       </Pressable>
       {showOptions && (

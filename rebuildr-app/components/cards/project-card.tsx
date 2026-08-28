@@ -1,4 +1,4 @@
-import { Body, Label } from "@components/typography/text";
+import { Body, Label, Title } from "@components/typography/text";
 import { View, Pressable } from "react-native";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
@@ -6,6 +6,7 @@ import { useLikeProject } from "@hooks/useLikeProject";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { ProductStatusEnum } from "@/gql/graphql";
+import { TitleSize } from "@components/typography/typeface";
 import { ImageCardPart } from "./image-card-part";
 
 export type ProjectCardProject = {
@@ -29,6 +30,7 @@ type Props = {
   onPress?: () => void;
   showOwner?: boolean;
   compact?: boolean;
+  titleSize?: TitleSize;
 };
 
 export const ProjectCard = ({
@@ -38,6 +40,7 @@ export const ProjectCard = ({
   onPress,
   showOwner = true,
   compact = false,
+  titleSize,
 }: Props) => {
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
@@ -142,7 +145,15 @@ export const ProjectCard = ({
             />
           )}
           <View style={{ gap: 2, flex: 1 }}>
-            <Label size={compact ? "medium" : "large"}>{project.title}</Label>
+            {titleSize ? (
+              <Title size={titleSize} numberOfLines={1}>
+                {project.title}
+              </Title>
+            ) : (
+              <Label size={compact ? "medium" : "large"}>
+                {project.title}
+              </Label>
+            )}
             <Body size="small" color="secondary">
               {
                 project.products.filter(

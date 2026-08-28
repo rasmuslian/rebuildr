@@ -223,21 +223,24 @@ export const Details = ({
         ))}
       {(hasImages || compact) && categoryId && (
         <>
-          {!internalMode && (
-            <PriceSection
-              price={product.price}
-              minimumPrice={product.minimumPrice ?? 0}
-              priceError={badFields?.["price"]}
-              isGiveaway={!!product.isGiveaway}
-              onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
-              soldByQuantity={!!product.soldByQuantity}
-              onUpdateSoldByQuantity={(soldByQuantity) =>
-                update({ soldByQuantity, price: undefined })
-              }
-              priceSuggestionMin={product.priceSuggestionMin}
-              priceSuggestionMax={product.priceSuggestionMax}
-            />
-          )}
+          <PriceSection
+            price={product.price}
+            minimumPrice={product.minimumPrice ?? 0}
+            priceError={badFields?.["price"]}
+            isGiveaway={!!product.isGiveaway}
+            onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
+            soldByQuantity={!!product.soldByQuantity}
+            onUpdateSoldByQuantity={(soldByQuantity) =>
+              update(
+                internalMode
+                  ? { soldByQuantity }
+                  : { soldByQuantity, price: undefined },
+              )
+            }
+            priceSuggestionMin={product.priceSuggestionMin}
+            priceSuggestionMax={product.priceSuggestionMax}
+            showPrice={!internalMode}
+          />
           <DescriptionSection
             compact={compact}
             product={product}

@@ -28,6 +28,7 @@ type Props = {
   borderStyle?: ViewStyle;
   searchOnSubmit?: boolean;
   searchScope?: SearchScope;
+  dropdownSource?: "navbar" | "hero" | "other";
   onSubmitSearch?: (text: string) => void;
 } & Omit<TextInputProps, "onChange" | "style">;
 
@@ -41,6 +42,7 @@ export const Search = ({
   borderStyle,
   searchOnSubmit = false,
   searchScope = "public",
+  dropdownSource = "other",
   onSubmitSearch,
   ...rest
 }: Props) => {
@@ -142,7 +144,7 @@ export const Search = ({
   ]);
 
   const onChangeText = (text: string) => {
-    setSearchState({ searchString: text, searchScope });
+    setSearchState({ searchString: text, searchScope, dropdownSource });
 
     if (onChange) {
       onChange(text);
@@ -169,7 +171,7 @@ export const Search = ({
   const onInputFocus = (
     event: Parameters<NonNullable<Props["onFocus"]>>[0],
   ) => {
-    setSearchState({ searchScope });
+    setSearchState({ searchScope, dropdownSource });
     if (onFocus) {
       onFocus(event);
       return;
@@ -210,6 +212,9 @@ export const Search = ({
         onChangeText={onChangeText}
         onFocus={onInputFocus}
         onSubmitEditing={searchOnSubmit ? onSubmit : undefined}
+        autoComplete="off"
+        importantForAutofill="no"
+        textContentType="none"
         placeholderTextColor={colors.text.secondary}
         value={searchState.searchString ?? ""}
         editable={!disabled && visible}

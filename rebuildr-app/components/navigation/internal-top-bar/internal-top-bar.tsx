@@ -3,12 +3,15 @@ import { INTERNAL_ADS_MENU_CONTEXT } from "@/queries/internal-ads";
 import { useQuery } from "@apollo/client";
 import AterbankenLogotype from "@assets/images/aterbanken-logotype.png";
 import { Button } from "@components/buttons/button";
+import { Divider } from "@components/dividers/divider";
 import { SearchBar } from "@components/search/search-bar";
-import { Label } from "@components/typography/text";
+import { Headline } from "@components/typography/text";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { isWeb, MAX_CONTENT_WIDTH, WEB_STICKY } from "@constants/layout";
 import { horizontalPadding } from "@constants/sizes";
 import { LoginModalContext } from "@context/loginModalContext";
+import { internalProductFilterVar } from "@/apollo/config";
+import { initialFilterProduct } from "@context/filter-product-context";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -16,7 +19,7 @@ import { useUser } from "@hooks/useUser";
 import { Icon } from "@icons/icon";
 import { router } from "expo-router";
 import { Image } from "expo-image";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useSearchContext } from "@context/search-context";
@@ -41,10 +44,15 @@ export const InternalTopBar = ({
   );
   const canUseInternalAds =
     showActions && !!data?.internalAdsOrganizationContext;
+  const { setSearchState } = useSearchContext();
+
+  useEffect(() => {
+    setSearchState({ searchScope: "internal" });
+  }, [setSearchState]);
 
   return (
     <View
-      style={isWeb ? { position: WEB_STICKY, top: 0, zIndex: 100 } : undefined}
+      style={isWeb ? { position: WEB_STICKY, top: 0, zIndex: 1001 } : undefined}
     >
       {isDesktop ? (
         <InternalTopBarDesktop
@@ -69,8 +77,14 @@ const useInternalNavigation = () => {
   const searchContext = useSearchContext();
 
   const goInternalHome = () => {
-    filterBuilder.reset().apply();
-    searchContext.reset();
+    internalProductFilterVar(initialFilterProduct);
+    searchContext.setSearchState({
+      dropdownVisible: false,
+      internalSearchData: undefined,
+      searchString: undefined,
+      completedSearchString: undefined,
+      searchScope: "internal",
+    });
     router.navigate("/internal");
   };
 
@@ -152,6 +166,7 @@ const InternalTopBarDesktop = ({
                 backgroundColor="transparent"
                 searchOnSubmit
                 searchScope="internal"
+                dropdownSource="navbar"
                 placeholder="Vad letar du efter?"
                 style={{ borderBottomWidth: 0, width: 360 }}
                 borderStyle={{
@@ -283,35 +298,39 @@ const InternalMenu = ({
   showInternalLinks: boolean;
   showMemberManagement: boolean;
 }) => (
-  <SlideInSheet open={open} onClose={onClose} title="Återbanken">
-    <View style={{ gap: 8 }}>
+  <SlideInSheet
+    open={open}
+    onClose={onClose}
+    title="Meny"
+    footer={
+      <Button
+        label="Gå tillbaka till Rebuildr.se"
+        type="tonal"
+        theme="light"
+        onPress={() => {
+          onClose();
+          onGoMarketplace();
+        }}
+        style={{ width: "100%" }}
+      />
+    }
+  >
+    <View>
       {showInternalLinks && (
-        <>
-          <InternalMenuEntry
-            label="Projekt"
-            href="/internal/projects"
-            onClose={onClose}
-          />
-        </>
+        <InternalMenuEntry
+          label="Projekt"
+          href="/internal/projects"
+          onClose={onClose}
+        />
       )}
+      {showInternalLinks && showMemberManagement && <Divider />}
       {showMemberManagement && (
         <InternalMenuEntry
-          label="Organisationsmedlemmar"
+          label="Medlemmar"
           href="/internal/members"
           onClose={onClose}
         />
       )}
-      <View style={{ marginTop: 16 }}>
-        <Button
-          label="Gå tillbaka till Rebuildr.se"
-          type="outlined"
-          onPress={() => {
-            onClose();
-            onGoMarketplace();
-          }}
-          style={{ width: "100%" }}
-        />
-      </View>
     </View>
   </SlideInSheet>
 );
@@ -331,8 +350,8 @@ const InternalMenuEntry = ({
       onClose();
       router.push(href);
     }}
-    style={{ paddingVertical: 12 }}
+    style={{ paddingVertical: 10 }}
   >
-    <Label size="large">{label}</Label>
+    <Headline size="small">{label}</Headline>
   </Pressable>
 );

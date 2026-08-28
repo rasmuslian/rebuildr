@@ -322,25 +322,29 @@ const MapInformationController = () => {
             </Label>
 
             <MapIconInfo
-              type={MapPinTypeEnum.Product}
-              title="Annons"
-              description="Enskild vara till försäljning"
-            />
-            <MapIconInfo
               type={MapPinTypeEnum.Project}
               title="Projekt"
               description="Projektförsäljning av varor"
             />
             <MapIconInfo
-              type={MapPinTypeEnum.Hub}
-              title="Företagsförsäljning"
-              description="Försäljning från företag"
+              type={MapPinTypeEnum.Product}
+              title="Annons"
+              description="Enskild vara till försäljning"
             />
-            <MapIconInfo
-              type={MapPinTypeEnum.Featured}
-              title="RebuildR Hub"
-              description="Inlämning och försäljning från lager"
-            />
+            {state.searchScope === "public" && (
+              <>
+                <MapIconInfo
+                  type={MapPinTypeEnum.Hub}
+                  title="Företagsförsäljning"
+                  description="Försäljning från företag"
+                />
+                <MapIconInfo
+                  type={MapPinTypeEnum.Featured}
+                  title="RebuildR Hub"
+                  description="Inlämning och försäljning från lager"
+                />
+              </>
+            )}
           </View>
         </View>
       )}

@@ -32,7 +32,7 @@ import {
 import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import MainBackground from "@assets/images/main-background.png";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
-import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
+import { AdGrid } from "@components/ad/ad-grid";
 import { Button } from "@components/buttons/button";
 import { SelectInput } from "@components/forms/selectInput";
 import { InternalCategoryGrid } from "@components/internal/internal-category-grid";
@@ -45,6 +45,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { Search } from "@components/search/search";
+import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import {
@@ -59,7 +60,12 @@ import { ProjectChips } from "@components/upsert-product/project-chips";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
 import { FileType, ProductFields } from "@components/upsert-product/types";
 import { primitives } from "@constants/colors";
-import { isWeb, MAX_CONTENT_WIDTH, screenGrowStyle } from "@constants/layout";
+import {
+  DESKTOP_ROW_COLUMNS,
+  isWeb,
+  MAX_CONTENT_WIDTH,
+  screenGrowStyle,
+} from "@constants/layout";
 import { borderRadius, horizontalPadding } from "@constants/sizes";
 import { useSearchContext } from "@context/search-context";
 import { useDocumentHandler } from "@hooks/use-document-handler";
@@ -71,10 +77,46 @@ import { downloadXlsx } from "@/utils/download-xlsx";
 import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentProps,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Animated, ImageBackground, Pressable, View } from "react-native";
 
 const SECTION_PAGE_SIZE = 10;
+const DESKTOP_TOP_BAR_HEIGHT = 64;
+
+type InternalAdRowSectionProps = {
+  header: string;
+  onHeaderPress: () => void;
+  products: ComponentProps<typeof AdGrid>[];
+};
+
+const InternalAdRowSection = ({
+  header,
+  onHeaderPress,
+  products,
+}: InternalAdRowSectionProps) => {
+  const { isDesktop } = useScreenType();
+
+  return (
+    <HoriztalListSection
+      title={header}
+      buttonTitle={isDesktop ? "Visa alla" : undefined}
+      onPress={onHeaderPress}
+      data={products}
+      keyExtractor={(product) => product.id}
+      renderItem={({ item }) => <AdGrid {...item} />}
+      visibleItems={3}
+      visibleItemsDesktop={DESKTOP_ROW_COLUMNS}
+    />
+  );
+};
+
 const getDashboardInput = (
   preset: InternalDashboardPreset,
 ): InternalAdsDashboardInput => {
@@ -119,10 +161,13 @@ export default function InternalAdsPage() {
     productId?: string;
     t?: string;
   }>();
-  const searchContext = useSearchContext();
+  const { searchState, setSearchState } = useSearchContext();
   const scrollY = useRef(new Animated.Value(0)).current;
-  const [heroHeight, setHeroHeight] = useState(0);
+  const scrollOffsetRef = useRef(0);
+  const heroSearchRef = useRef<View>(null);
+  const [heroSearchBottom, setHeroSearchBottom] = useState(0);
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
+  const previousShowSearchBarTopBar = useRef(showSearchBarTopBar);
   const [editorProductId, setEditorProductId] = useState<string>();
   const [showEditor, setShowEditor] = useState(false);
   const [isNewInternalAd, setIsNewInternalAd] = useState(false);
@@ -215,25 +260,54 @@ export default function InternalAdsPage() {
 
   useEffect(() => {
     if (!isWeb || typeof window === "undefined") return;
-    const onScroll = () => scrollY.setValue(window.scrollY);
+    const onScroll = () => {
+      scrollOffsetRef.current = window.scrollY;
+      scrollY.setValue(window.scrollY);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, [scrollY]);
 
-  useEffect(() => {
-    if (heroHeight === 0) return;
-
-    const listener = scrollY.addListener(({ value }) => {
-      setShowSearchBarTopBar(value > heroHeight - 48);
+  const measureHeroSearch = useCallback(() => {
+    heroSearchRef.current?.measure((_x, _y, _width, height, _pageX, pageY) => {
+      setHeroSearchBottom(pageY + scrollOffsetRef.current + height);
     });
+  }, []);
+
+  useEffect(() => {
+    if (heroSearchBottom === 0) return;
+
+    const updateSearchLocation = ({ value }: { value: number }) => {
+      const searchIsOutsideViewport =
+        value >= heroSearchBottom - DESKTOP_TOP_BAR_HEIGHT;
+      if (previousShowSearchBarTopBar.current === searchIsOutsideViewport) {
+        return;
+      }
+
+      previousShowSearchBarTopBar.current = searchIsOutsideViewport;
+      setShowSearchBarTopBar(searchIsOutsideViewport);
+
+      if (isDesktop && searchState.dropdownVisible) {
+        setSearchState({ dropdownVisible: false });
+      }
+    };
+
+    const listener = scrollY.addListener(updateSearchLocation);
+    updateSearchLocation({ value: scrollOffsetRef.current });
 
     return () => scrollY.removeListener(listener);
-  }, [heroHeight, scrollY]);
+  }, [
+    heroSearchBottom,
+    isDesktop,
+    scrollY,
+    searchState.dropdownVisible,
+    setSearchState,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
-      searchContext.setSearchState({
+      setSearchState({
         dropdownVisible: false,
         internalSearchData: undefined,
         searchString: undefined,
@@ -246,7 +320,7 @@ export default function InternalAdsPage() {
       return () => {
         document.body.style.backgroundColor = "";
       };
-    }, [refetchProjects, searchContext.setSearchState]),
+    }, [refetchProjects, setSearchState]),
   );
 
   const { data: batchData, refetch: refetchBatch } = useQuery<
@@ -481,7 +555,9 @@ export default function InternalAdsPage() {
   const availableNowProducts = data?.availableNow.products ?? [];
   const upcomingProducts = data?.upcoming.products ?? [];
   const externallyPublishedProducts = data?.externallyPublished.products ?? [];
-  const maxVisibleProducts = isDesktop ? 4 : SECTION_PAGE_SIZE;
+  const maxVisibleProducts = isDesktop
+    ? DESKTOP_ROW_COLUMNS
+    : SECTION_PAGE_SIZE;
   const hasAccess = !!data?.internalAdsOrganizationContext;
   const hasImport =
     (!discardingImport && !!batch) ||
@@ -531,7 +607,6 @@ export default function InternalAdsPage() {
           overflow: "hidden",
           width: "100%",
         }}
-        onLayout={(event) => setHeroHeight(event.nativeEvent.layout.height)}
       >
         <View
           style={{
@@ -552,24 +627,30 @@ export default function InternalAdsPage() {
               heading={1}
               style={{ maxWidth: 780 }}
             >
-              Material, verktyg och resurser som bara cirkulerar inom er
-              organisation.
+              Sök bland material och verktyg som ni redan äger
             </Headline>
           </View>
 
           {hasAccess && (
             <View style={{ gap: 16 }}>
-              <Search
-                style={{ width: isDesktop ? 633 : undefined }}
-                backgroundColor={primitives.neutrals100}
-                borderStyle={{
-                  borderColor: colors.buttons.outlinedStroke.enabled,
-                  borderWidth: 1,
-                }}
-                placeholder="Vad letar du efter?"
-                searchScope="internal"
-                searchOnSubmit
-              />
+              <View
+                ref={heroSearchRef}
+                collapsable={false}
+                onLayout={measureHeroSearch}
+              >
+                <Search
+                  style={{ width: isDesktop ? 633 : undefined }}
+                  backgroundColor={primitives.neutrals100}
+                  borderStyle={{
+                    borderColor: colors.buttons.outlinedStroke.enabled,
+                    borderWidth: 1,
+                  }}
+                  placeholder="Vad letar du efter?"
+                  searchScope="internal"
+                  dropdownSource="hero"
+                  searchOnSubmit
+                />
+              </View>
               <View style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}>
                 <Button
                   label="Ny annons"
@@ -680,7 +761,7 @@ export default function InternalAdsPage() {
           ) : activeProducts.length ? (
             <View style={{ gap: 48 }}>
               {!!availableNowProducts.length && (
-                <AdGridSection
+                <InternalAdRowSection
                   header="Tillgänglig nu"
                   onHeaderPress={() =>
                     router.navigate({
@@ -694,7 +775,7 @@ export default function InternalAdsPage() {
                 />
               )}
               {!!upcomingProducts.length && (
-                <AdGridSection
+                <InternalAdRowSection
                   header="Kommande"
                   onHeaderPress={() =>
                     router.navigate({
@@ -708,7 +789,7 @@ export default function InternalAdsPage() {
                 />
               )}
               {!!externallyPublishedProducts.length && (
-                <AdGridSection
+                <InternalAdRowSection
                   header="Externt publicerat"
                   onHeaderPress={() =>
                     router.navigate({
@@ -719,7 +800,7 @@ export default function InternalAdsPage() {
                   products={getAdGridProducts(externallyPublishedProducts)}
                 />
               )}
-              <AdGridSection
+              <InternalAdRowSection
                 header="Senast inkomna"
                 onHeaderPress={() => router.navigate("/internal/search")}
                 products={adGridProducts}
